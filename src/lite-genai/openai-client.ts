@@ -12,15 +12,14 @@ import { Logger, retry } from './utils';
 const logger = new Logger('OpenAIClient');
 
 export class OpenAIClient {
-  private client: OpenAI;
-
-  constructor(config: OpenAIConfig) {
+  private client: OpenAI;  constructor(config: OpenAIConfig) {
     this.client = new OpenAI({
       apiKey: config.apiKey,
       baseURL: config.baseURL,
-      timeout: config.timeout || 30000
+      timeout: config.timeout || 120000, // Increased to 2 minutes for complex story generation
+      maxRetries: 2 // Built-in OpenAI retry
     });
-    logger.log('OpenAI client initialized');
+    logger.log(`OpenAI client initialized with baseURL: ${config.baseURL || 'default'}, timeout: ${config.timeout || 120000}ms`);
   }
 
   async generateText(

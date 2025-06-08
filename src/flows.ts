@@ -20,7 +20,7 @@ import { parsePartialJson } from './lite-genai/utils';
 const ai = createLiteGenkit();
 
 // OpenAI model configuration
-const DEFAULT_MODEL = 'deepseek-r1-distill-llama-8b';
+const DEFAULT_MODEL = process.env['OPENAI_MODEL'] || 'deepseek-r1-distill-llama-8b';
 
 interface MyState {
   primaryObjective?: string;
@@ -52,9 +52,7 @@ export const descriptionFlow = ai.defineFlow({
       liteSessionStore.setState(sessionId, 'initialized', true);
     } else if (!liteSessionStore.getSession(sessionId)) {
       liteSessionStore.createSession(sessionId);
-    }
-
-    try {
+    }    try {
       const messages = liteSessionStore.getMessages(sessionId);
       
       if (messages.length === 0) {
@@ -65,12 +63,18 @@ export const descriptionFlow = ai.defineFlow({
         });
       }
 
+      console.log(`📝 Generating description with ${messages.length} previous messages`);
+      const startTime = Date.now();
+      
       const response = await openaiClient.generateWithHistory(
         liteSessionStore.getMessages(sessionId),
         descriptionPrompt(userInput || ''),
         undefined,
         DEFAULT_MODEL
       );
+
+      const duration = Date.now() - startTime;
+      console.log(`✅ Description generated in ${duration}ms`);
 
       liteSessionStore.addMessage(sessionId, {
         role: 'user',
@@ -87,10 +91,19 @@ export const descriptionFlow = ai.defineFlow({
       return parsePartialJson(maybeStripMarkdown(response));
     } catch (error) {
       console.error('Description flow error:', error);
+      
+      // Provide a helpful fallback response based on user input
+      const isTimeoutError = error instanceof Error && 
+        (error.message.includes('timeout') || error.message.includes('TIMEOUT'));
+      
+      if (isTimeoutError) {
+        console.error('API timeout detected. Check your OpenAI endpoint configuration.');
+      }
+      
       return {
-        storyPremise: '',
-        nextQuestion: 'Tell me more about the story',
-        premiseOptions: []
+        storyPremise: userInput ? `A story about ${userInput}` : 'A magical adventure story',
+        nextQuestion: 'What type of story would you like to create?',
+        premiseOptions: ['Fantasy Adventure', 'Sci-Fi Quest', 'Mystery Investigation', 'Epic Journey', 'Magical Quest']
       };
     }
   }
@@ -158,10 +171,12 @@ export const beginStoryFlow = ai.defineFlow({
     let options: string[] = [];
     let primaryObjective = '';
     
-    try {
-      if (!liteSessionStore.getSession(sessionId)) {
+    try {      if (!liteSessionStore.getSession(sessionId)) {
         liteSessionStore.createSession(sessionId);
       }
+
+      console.log(`📖 Generating story beginning`);
+      const startTime = Date.now();
 
       const response = await openaiClient.generateWithHistory(
         liteSessionStore.getMessages(sessionId),
@@ -169,6 +184,9 @@ export const beginStoryFlow = ai.defineFlow({
         undefined,
         DEFAULT_MODEL
       );
+
+      const duration = Date.now() - startTime;
+      console.log(`✅ Story beginning generated in ${duration}ms`);
 
       liteSessionStore.addMessage(sessionId, {
         role: 'user',
@@ -189,10 +207,29 @@ export const beginStoryFlow = ai.defineFlow({
       liteSessionStore.setState(sessionId, 'primaryObjective', primaryObjective);
       liteSessionStore.setState(sessionId, 'milestones', storyDetail.milestones || []);
       liteSessionStore.setState(sessionId, 'currentMilestone', (storyDetail.milestones || [])[0]);
-      
-      options = (storyDetail.choices || []).map(choice => choice.choice);
+        options = (storyDetail.choices || []).map(choice => choice.choice);
     } catch (e) {
-      console.log(e);
+      console.log('Begin story flow error:', e);
+      
+      // Provide fallback story content
+      const fallbackStory = [
+        "In a mystical realm where magic flows through ancient forests, brave adventurers gather at the edge of a dark wood.",
+        "Their quest: to find the legendary Crystal of Harmony that can restore balance to their troubled land.",
+        "As they prepare to enter the forest, they notice strange shadows moving between the trees and must decide their first move."
+      ];
+      
+      return {
+        storyParts: fallbackStory,
+        options: [
+          "Proceed cautiously into the forest",
+          "Set up camp and wait for dawn",
+          "Call out to the shadows",
+          "Look for an alternative path",
+          "Cast a protective spell"
+        ],
+        progress: 0,
+        primaryObjective: "Find the Crystal of Harmony and restore balance to the land"
+      };
     }
     
     return { storyParts, options, progress: 0, primaryObjective };
@@ -227,10 +264,11 @@ export const continueStoryFlow = ai.defineFlow({
     let options: string[] = [];
     let rating: string = 'NEUTRAL';
     let primaryObjective = liteSessionStore.getState(sessionId, 'primaryObjective') || '';
-    let progress = -1;
-
-    try {
+    let progress = -1;    try {
       const currentMilestone = liteSessionStore.getState(sessionId, 'currentMilestone');
+      
+      console.log(`📖 Continuing story with choice: "${userInput}"`);
+      const startTime = Date.now();
       
       const response = await openaiClient.generateWithHistory(
         liteSessionStore.getMessages(sessionId),
@@ -238,6 +276,9 @@ export const continueStoryFlow = ai.defineFlow({
         undefined,
         DEFAULT_MODEL
       );
+
+      const duration = Date.now() - startTime;
+      console.log(`✅ Story continuation generated in ${duration}ms`);
 
       liteSessionStore.addMessage(sessionId, {
         role: 'user',
@@ -258,11 +299,31 @@ export const continueStoryFlow = ai.defineFlow({
       const achievedMilestone = storyDetail.achievedCurrentMilestone || false;
       
       const progressResponse = await handleProgress(storyParts, achievedMilestone, sessionId);
-      storyParts = progressResponse.storyParts;
-      progress = progressResponse.progress;
+      storyParts = progressResponse.storyParts;      progress = progressResponse.progress;
       primaryObjective = liteSessionStore.getState(sessionId, 'primaryObjective') || '';
     } catch (e) {
-      console.log(e);
+      console.log('Continue story flow error:', e);
+      
+      // Provide fallback continuation
+      const fallbackStoryParts = [
+        "The adventurers carefully consider their options and make their choice.",
+        "As they move forward, new challenges and opportunities present themselves.",
+        "Their journey continues as they work toward their ultimate goal."
+      ];
+      
+      return {
+        storyParts: fallbackStoryParts,
+        options: [
+          "Continue forward",
+          "Look for clues",
+          "Rest and recover",
+          "Try a different approach",
+          "Work together as a team"
+        ],
+        primaryObjective: primaryObjective || "Complete the quest",
+        progress: progress >= 0 ? progress : 0,
+        rating: 'NEUTRAL'
+      };
     }
     
     return { storyParts, options, primaryObjective, progress, rating };
@@ -359,9 +420,16 @@ async function genImgBlob(story: string, sessionId: string): Promise<string> {
 
 const markdownRegex = /^\s*(```json)?((.|\n)*?)(```)?\s*$/i;
 function maybeStripMarkdown(withMarkdown: string) {
-  const mdMatch = markdownRegex.exec(withMarkdown);
-  if (!mdMatch) {
-    return withMarkdown;
+  let cleaned = withMarkdown;
+  
+  // Remove <think> tags and similar reasoning content
+  cleaned = cleaned.replace(/<think>[\s\S]*?<\/think>/gi, '');
+  
+  // Remove markdown code blocks
+  const mdMatch = markdownRegex.exec(cleaned);
+  if (mdMatch) {
+    cleaned = mdMatch[2];
   }
-  return mdMatch[2];
+  
+  return cleaned.trim();
 }
