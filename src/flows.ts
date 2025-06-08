@@ -325,34 +325,38 @@ export const genImgFlow = ai.defineFlow({
 });
 
 async function genImgBlob(story: string, sessionId: string): Promise<string> {
-  const openaiClient = getOpenAIClient();
-  const sdClient = getStableDiffusionClient();
+   // TEMPORARILY SUSPENDED: Image generation disabled
+  console.log('Image generation temporarily suspended');
+  return ''; // Return empty string instead of generating image
   
-  try {    // Generate image description using OpenAI
-    const storyImgDescr = await openaiClient.generateWithHistory(
-      liteSessionStore.getMessages(sessionId),
-      `Describe an image that captures the essence of this story: ${story}.
-       Do not use any words indicating violence or profanity. Return a string only.
-       Do not return JSON.`,
-      undefined,
-      DEFAULT_MODEL,
-      500 // Small token limit for image description
-    );
+  // const openaiClient = getOpenAIClient();
+  // const sdClient = getStableDiffusionClient();
+  
+  // try {    // Generate image description using OpenAI
+  //   const storyImgDescr = await openaiClient.generateWithHistory(
+  //     liteSessionStore.getMessages(sessionId),
+  //     `Describe an image that captures the essence of this story: ${story}.
+  //      Do not use any words indicating violence or profanity. Return a string only.
+  //      Do not return JSON.`,
+  //     undefined,
+  //     DEFAULT_MODEL,
+  //     500 // Small token limit for image description
+  //   );
     
-    // Create image prompt and generate with Stable Diffusion
-    const imgPrompt = createImgPrompt(storyImgDescr);
-    const base64Image = await sdClient.generateImage({
-      prompt: imgPrompt,
-      width: 512,
-      height: 512,
-      steps: 20
-    });
+  //   // Create image prompt and generate with Stable Diffusion
+  //   const imgPrompt = createImgPrompt(storyImgDescr);
+  //   const base64Image = await sdClient.generateImage({
+  //     prompt: imgPrompt,
+  //     width: 512,
+  //     height: 512,
+  //     steps: 20
+  //   });
     
-    return `data:image/png;base64,${base64Image}`;
-  } catch (e) {
-    console.log('Image generation error:', e);
-    return '';
-  }
+  //   return `data:image/png;base64,${base64Image}`;
+  // } catch (e) {
+  //   console.log('Image generation error:', e);
+  //   return '';
+  // }
 }
 
 const markdownRegex = /^\s*(```json)?((.|\n)*?)(```)?\s*$/i;

@@ -7,13 +7,12 @@
  * found in the LICENSE file at https://angular.dev/license
  *
  -->
-@if (isLoading()) {
-
-} @else if (imgResource.hasValue() && imgResource.value() === '') {
-    <div class="img-placeholder" (click)="imgResource.reload()">
-        <mat-icon aria-hidden="false" aria-label="Reload image icon" fontIcon="refresh"></mat-icon>
-        <p>Failed to load image. Click to retry.</p>
-    </div>
-} @else {
-  <img [src]="imgResource.value()" />
-}
+<!-- Image generation is currently suspended -->
+<div class="img-placeholder">
+  <mat-icon
+    aria-hidden="false"
+    aria-label="Image disabled icon"
+    fontIcon="image_not_supported"
+  ></mat-icon>
+  <p>Image generation is temporarily disabled</p>
+</div>

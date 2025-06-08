@@ -21,68 +21,71 @@ export class StableDiffusionClient {
   }
 
   async generateImage(request: ImageGenerationRequest): Promise<string> {
-    const {
-      prompt,
-      negativePrompt = '',
-      width = 512,
-      height = 512,
-      steps = 20
-    } = request;
+    // TEMPORARILY SUSPENDED: Stable Diffusion image generation disabled
+  logger.log('Stable Diffusion image generation temporarily suspended');
+  return ''; // Return empty string instead of generating image
+    // const {
+    //   prompt,
+    //   negativePrompt = '',
+    //   width = 512,
+    //   height = 512,
+    //   steps = 20
+    // } = request;
 
-    try {
-      logger.log(`Generating image with prompt: ${prompt.substring(0, 100)}...`);
+    // try {
+    //   logger.log(`Generating image with prompt: ${prompt.substring(0, 100)}...`);
       
-      const payload = {
-        prompt,
-        negative_prompt: negativePrompt,
-        width,
-        height,
-        steps,
-        cfg_scale: 7,
-        sampler_name: 'DPM++ 2M Karras',
-        seed: -1,
-        batch_size: 1,
-        n_iter: 1
-      };
+    //   const payload = {
+    //     prompt,
+    //     negative_prompt: negativePrompt,
+    //     width,
+    //     height,
+    //     steps,
+    //     cfg_scale: 7,
+    //     sampler_name: 'DPM++ 2M Karras',
+    //     seed: -1,
+    //     batch_size: 1,
+    //     n_iter: 1
+    //   };
 
-      const response = await retry(async () => {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+    //   const response = await retry(async () => {
+    //     const controller = new AbortController();
+    //     const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
-        try {
-          const res = await fetch(`${this.baseUrl}/sdapi/v1/txt2img`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload),
-            signal: controller.signal
-          });
+    //     try {
+    //       const res = await fetch(`${this.baseUrl}/sdapi/v1/txt2img`, {
+    //         method: 'POST',
+    //         headers: {
+    //           'Content-Type': 'application/json'
+    //         },
+    //         body: JSON.stringify(payload),
+    //         signal: controller.signal
+    //       });
 
-          clearTimeout(timeoutId);
+    //       clearTimeout(timeoutId);
 
-          if (!res.ok) {
-            const errorText = await res.text();
-            throw new Error(`Stable Diffusion API returned ${res.status}: ${errorText}`);
-          }
+    //       if (!res.ok) {
+    //         const errorText = await res.text();
+    //         throw new Error(`Stable Diffusion API returned ${res.status}: ${errorText}`);
+    //       }
 
-          return res.json();
-        } catch (error) {
-          clearTimeout(timeoutId);
-          throw error;
-        }
-      }, 2, 5000); // Retry twice with 5 second delays
+    //       return res.json();
+    //     } catch (error) {
+    //       clearTimeout(timeoutId);
+    //       throw error;
+    //     }
+    //   }, 2, 5000); // Retry twice with 5 second delays
 
-      if (!response.images || response.images.length === 0) {
-        throw new Error('No images returned from Stable Diffusion API');
-      }
+    //   if (!response.images || response.images.length === 0) {
+    //     throw new Error('No images returned from Stable Diffusion API');
+    //   }
 
-      logger.log('Image generated successfully');
-      return response.images[0]; // Base64 encoded image
-    } catch (error) {
-      logger.error('Stable Diffusion Error:', error);
-      throw new Error(`Failed to generate image: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
+    //   logger.log('Image generated successfully');
+    //   return response.images[0]; // Base64 encoded image
+    // } catch (error) {
+    //   logger.error('Stable Diffusion Error:', error);
+    //   throw new Error(`Failed to generate image: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    // }
   }
 
   async checkHealth(): Promise<boolean> {
