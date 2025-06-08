@@ -12,20 +12,21 @@ import { Logger, retry } from './utils';
 const logger = new Logger('OpenAIClient');
 
 export class OpenAIClient {
-  private client: OpenAI;  constructor(config: OpenAIConfig) {
+  private client: OpenAI;
+
+  constructor(config: OpenAIConfig) {
     this.client = new OpenAI({
       apiKey: config.apiKey,
       baseURL: config.baseURL,
-      timeout: config.timeout || 120000, // Increased to 2 minutes for complex story generation
-      maxRetries: 2 // Built-in OpenAI retry
+      timeout: config.timeout || 30000
     });
-    logger.log(`OpenAI client initialized with baseURL: ${config.baseURL || 'default'}, timeout: ${config.timeout || 120000}ms`);
+    logger.log('OpenAI client initialized');
   }
 
   async generateText(
     messages: ChatMessage[],
-    model: string = 'deepseek-r1-distill-llama-8b',
-    maxTokens: number = 1000,
+    model: string = 'deepseek-r1-distill-llama-8bb',
+    maxTokens: number = 5120,
     temperature: number = 0.7
   ): Promise<string> {
     try {
@@ -54,8 +55,8 @@ export class OpenAIClient {
 
   async generateCompletion(
     prompt: string,
-    model: string = 'deepseek-r1-distill-llama-8b',
-    maxTokens: number = 1000,
+    model: string = 'deepseek-r1-distill-llama-8bb',
+    maxTokens: number = 5120,
     temperature: number = 0.7
   ): Promise<string> {
     const messages: ChatMessage[] = [
@@ -67,7 +68,7 @@ export class OpenAIClient {
   async generateStructuredOutput<T>(
     messages: ChatMessage[],
     schema: any,
-    model: string = 'deepseek-r1-distill-llama-8b'
+    model: string = 'deepseek-r1-distill-llama-8bb'
   ): Promise<T> {
     try {
       // Add instruction to return JSON
@@ -98,7 +99,7 @@ export class OpenAIClient {
     sessionMessages: ChatMessage[],
     newUserMessage: string,
     systemPrompt?: string,
-    model: string = 'deepseek-r1-distill-llama-8b'
+    model: string = 'deepseek-r1-distill-llama-8bb'
   ): Promise<string> {
     const messages: ChatMessage[] = [];
     

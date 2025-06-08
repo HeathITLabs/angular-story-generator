@@ -13,23 +13,8 @@ export function parsePartialJson(jsonString: string): any {
   try {
     return JSON.parse(jsonString);
   } catch (e) {
-    // Try to extract JSON from text that might contain other content
+    // Try to fix common issues with partial JSON
     let fixed = jsonString.trim();
-    
-    // Remove <think> tags and similar reasoning content
-    fixed = fixed.replace(/<think>[\s\S]*?<\/think>/gi, '');
-    
-    // Try to find JSON object or array boundaries
-    const jsonObjectMatch = fixed.match(/\{[\s\S]*\}/);
-    const jsonArrayMatch = fixed.match(/\[[\s\S]*\]/);
-    
-    if (jsonObjectMatch) {
-      fixed = jsonObjectMatch[0];
-    } else if (jsonArrayMatch) {
-      fixed = jsonArrayMatch[0];
-    }
-    
-    fixed = fixed.trim();
     
     // Add missing closing braces
     const openBraces = (fixed.match(/\{/g) || []).length;
@@ -63,7 +48,7 @@ export function parsePartialJson(jsonString: string): any {
 export async function retry<T>(
   fn: () => Promise<T>,
   maxAttempts: number = 3,
-  delay: number = 2000 // Increased delay between retries
+  delay: number = 1000
 ): Promise<T> {
   let lastError: Error;
   
@@ -74,14 +59,8 @@ export async function retry<T>(
       lastError = error as Error;
       console.log(`Attempt ${attempt} failed:`, error);
       
-      // If it's a timeout error, increase delay more aggressively
-      const isTimeout = error instanceof Error && 
-        (error.message.includes('timeout') || error.message.includes('TIMEOUT'));
-      
       if (attempt < maxAttempts) {
-        const backoffDelay = isTimeout ? delay * attempt * 2 : delay * attempt;
-        console.log(`Retrying in ${backoffDelay}ms...`);
-        await new Promise(resolve => setTimeout(resolve, backoffDelay));
+        await new Promise(resolve => setTimeout(resolve, delay * attempt));
       }
     }
   }

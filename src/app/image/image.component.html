@@ -8,9 +8,7 @@
  *
  -->
 @if (isLoading()) {
-    <div class="loading-img-placeholder">
-        <mat-spinner [diameter]="50" />
-    </div>
+
 } @else if (imgResource.hasValue() && imgResource.value() === '') {
     <div class="img-placeholder" (click)="imgResource.reload()">
         <mat-icon aria-hidden="false" aria-label="Reload image icon" fontIcon="refresh"></mat-icon>

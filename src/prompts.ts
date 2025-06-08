@@ -28,9 +28,6 @@ export function descriptionPrompt(userInput: string): string {
     return `You are helping someone create the background of a story based on all of the 
 information the user has provided so far. This is the user's latest input: ${userInput}.
 
-IMPORTANT: You must respond with only valid JSON. Do not include any thinking, reasoning, 
-explanations, or other text outside of the JSON structure.
-
 Create a description of the story based on what the user has told you so
 far. If you don't have enough infomration, make something up. Return only
 the story description text.
@@ -77,10 +74,6 @@ The final response should be structured as follows:
 
 Respond as JSON only. Wrap all field values in double quotes. Do not use single quotes.
 
-Do not include any thinking, reasoning, explanations, or other text. 
-Do not use <think> tags or any other markup. 
-Return only valid JSON that matches the specified structure exactly.
-
 `;
 }
 
@@ -91,7 +84,7 @@ const choicesJson = `choices: [
         rating: "GOOD" | "BAD" | "NEUTRAL" // whether this is a good, bad, or neutral choice for the characters
     },
     {
-        choice: "choice 2", 
+        choice: "choice 2",
         story: "Story narrative for choice 2", // The next part of the story if the character were to make this choice
         rating: "GOOD" | "BAD" | "NEUTRAL" // whether this is a good, bad, or neutral choice for the characters
     },
@@ -102,12 +95,12 @@ const choicesJson = `choices: [
     },
     {
         choice: "choice 4",
-        story: "Story narrative for choice 4", // The next part of the story if the character were to make this choice
+        story: "Story narrative for choice 3", // The next part of the story if the character were to make this choice
         rating: "GOOD" | "BAD" | "NEUTRAL" // whether this is a good, bad, or neutral choice for the characters
     },
     {
         choice: "choice 5",
-        story: "Story narrative for choice 5", // The next part of the story if the character were to make this choice
+        story: "Story narrative for choice 3", // The next part of the story if the character were to make this choice
         rating: "GOOD" | "BAD" | "NEUTRAL" // whether this is a good, bad, or neutral choice for the characters
     }
 ],`;
@@ -122,9 +115,6 @@ const storyPartsJson = `storyParts: [
 
 export function continuePrompt(choice: string, currentMilestone: string): string {
     return `
-    IMPORTANT: You must respond with only valid JSON. Do not include any thinking, reasoning, 
-    explanations, or other text outside of the JSON structure.
-    
     The characters make the following choice: ${choice}.
 
     Give the characters' choice a rating of GOOD, BAD, or NEUTRAL in terms
@@ -151,11 +141,9 @@ export function continuePrompt(choice: string, currentMilestone: string): string
         rating: "GOOD | BAD | NEUTRAL", // GOOD, BAD, or NEUTRAL
         ${choicesJson}
         achievedCurrentMilestone: true | false
-    }    Respond as JSON only. Wrap all field values in double quotes. Do not use single quotes.
+    }
 
-    Do not include any thinking, reasoning, explanations, or other text. 
-    Do not use <think> tags or any other markup. 
-    Return only valid JSON that matches the specified structure exactly.
+    Respond as JSON only. Wrap all field values in double quotes. Do not use single quotes.
 
     Do not use any harmful expressions, hate speech, or vulgar
     language.
@@ -177,9 +165,6 @@ export const choicesPrompt =
 
 export function beginStoryPrompt(description: string): string {
     return `
-    IMPORTANT: You must respond with only valid JSON. Do not include any thinking, reasoning, 
-    explanations, or other text outside of the JSON structure.
-    
     Write the beginning of the story, which introduces the characters, their location,
     and their "primary objective". The characters are trying to accomplish their
     "primary objective" to be victorious. End the beginning of the story with
@@ -218,11 +203,9 @@ export function beginStoryPrompt(description: string): string {
             "milestone_5" // equal to primaryObjective
         ],
         ${choicesJson}
-    }    Respond as JSON only. Wrap all field values in double quotes. Do not use single quotes.
+    }
 
-    Do not include any thinking, reasoning, explanations, or other text. 
-    Do not use <think> tags or any other markup. 
-    Return only valid JSON that matches the specified structure exactly.
+    Respond as JSON only. Wrap all field values in double quotes. Do not use single quotes.
 
     Do not use any harmful expressions, hate speech, or vulgar
     language.`;
