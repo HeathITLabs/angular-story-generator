@@ -20,7 +20,7 @@ import { parsePartialJson } from './lite-genai/utils';
 const ai = createLiteGenkit();
 
 // OpenAI model configuration
-const DEFAULT_MODEL = 'gpt-3.5-turbo';
+const DEFAULT_MODEL = 'deepseek-r1-distill-llama-8b';
 
 interface MyState {
   primaryObjective?: string;

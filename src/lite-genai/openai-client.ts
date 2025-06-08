@@ -25,7 +25,7 @@ export class OpenAIClient {
 
   async generateText(
     messages: ChatMessage[],
-    model: string = 'gpt-3.5-turbo',
+    model: string = 'deepseek-r1-distill-llama-8b',
     maxTokens: number = 1000,
     temperature: number = 0.7
   ): Promise<string> {
@@ -55,7 +55,7 @@ export class OpenAIClient {
 
   async generateCompletion(
     prompt: string,
-    model: string = 'gpt-3.5-turbo',
+    model: string = 'deepseek-r1-distill-llama-8b',
     maxTokens: number = 1000,
     temperature: number = 0.7
   ): Promise<string> {
@@ -68,7 +68,7 @@ export class OpenAIClient {
   async generateStructuredOutput<T>(
     messages: ChatMessage[],
     schema: any,
-    model: string = 'gpt-3.5-turbo'
+    model: string = 'deepseek-r1-distill-llama-8b'
   ): Promise<T> {
     try {
       // Add instruction to return JSON
@@ -99,7 +99,7 @@ export class OpenAIClient {
     sessionMessages: ChatMessage[],
     newUserMessage: string,
     systemPrompt?: string,
-    model: string = 'gpt-3.5-turbo'
+    model: string = 'deepseek-r1-distill-llama-8b'
   ): Promise<string> {
     const messages: ChatMessage[] = [];
     

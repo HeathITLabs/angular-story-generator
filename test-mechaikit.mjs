@@ -18,7 +18,7 @@ async function testMechaiKit() {
     const openaiClient = getOpenAIClient();
     
     const testPrompt = 'Hello! Please respond with "MechaiKit is working!" to confirm the connection.';
-    const response = await openaiClient.generateCompletion(testPrompt, 'gpt-3.5-turbo', 50, 0.7);
+    const response = await openaiClient.generateCompletion(testPrompt, 'deepseek-r1-distill-llama-8b', 50, 0.7);
     
     console.log('✅ OpenAI Response:', response);
     console.log('');
