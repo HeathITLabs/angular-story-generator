@@ -64,7 +64,6 @@ export class OpenAIClient {
     ];
     return this.generateText(messages, model, maxTokens, temperature);
   }
-
   async generateStructuredOutput<T>(
     messages: ChatMessage[],
     schema: any,
@@ -74,32 +73,34 @@ export class OpenAIClient {
       // Add instruction to return JSON
       const systemMessage: ChatMessage = {
         role: 'system',
-        content: 'You must respond with valid JSON that matches the required schema. Do not include any additional text or formatting.',
+        content: 'You must respond with valid JSON that matches the required schema. Do not include any additional text, formatting, reasoning, or thinking content. Return ONLY the JSON object.',
         timestamp: new Date()
       };
 
       const allMessages = [systemMessage, ...messages];
-      const response = await this.generateText(allMessages, model, 2000, 0.3);
+      const response = await this.generateText(allMessages, model, 2500, 0.2); // Lower temperature for more consistent output
       
       // Try to parse the JSON response
       try {
-        return JSON.parse(response.trim());
+        return JSON.parse(response.trim()) as T;
       } catch (parseError) {
         logger.error('Failed to parse JSON response:', response);
-        throw new Error('Invalid JSON response from OpenAI');
+        // Try using our enhanced JSON parser as fallback
+        const { parsePartialJson } = await import('./utils');
+        return parsePartialJson(response) as T;
       }
     } catch (error) {
       logger.error('Structured output generation error:', error);
       throw error;
     }
   }
-
   // Helper method to create a prompt with conversation history
   async generateWithHistory(
     sessionMessages: ChatMessage[],
     newUserMessage: string,
     systemPrompt?: string,
-    model: string = 'deepseek-r1-distill-llama-8bb'
+    model: string = 'deepseek-r1-distill-llama-8bb',
+    maxTokens: number = 2000
   ): Promise<string> {
     const messages: ChatMessage[] = [];
     
@@ -122,7 +123,38 @@ export class OpenAIClient {
       timestamp: new Date()
     });
     
-    return this.generateText(messages, model);
+    return this.generateText(messages, model, maxTokens);
+  }
+
+  // Helper method for structured JSON output with conversation history
+  async generateStructuredWithHistory<T>(
+    sessionMessages: ChatMessage[],
+    newUserMessage: string,
+    systemPrompt?: string,
+    model: string = 'deepseek-r1-distill-llama-8bb'
+  ): Promise<T> {
+    const messages: ChatMessage[] = [];
+    
+    // Add system prompt if provided
+    if (systemPrompt) {
+      messages.push({
+        role: 'system',
+        content: systemPrompt,
+        timestamp: new Date()
+      });
+    }
+    
+    // Add conversation history
+    messages.push(...sessionMessages);
+    
+    // Add new user message
+    messages.push({
+      role: 'user',
+      content: newUserMessage,
+      timestamp: new Date()
+    });
+    
+    return this.generateStructuredOutput<T>(messages, null, model);
   }
 }
 

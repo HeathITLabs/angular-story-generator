@@ -63,13 +63,12 @@ export const descriptionFlow = ai.defineFlow({
           content: preamblePrompt,
           timestamp: new Date()
         });
-      }
-
-      const response = await openaiClient.generateWithHistory(
+      }      const response = await openaiClient.generateWithHistory(
         liteSessionStore.getMessages(sessionId),
         descriptionPrompt(userInput || ''),
         undefined,
-        DEFAULT_MODEL
+        DEFAULT_MODEL,
+        2048 // Increased token limit for description flow
       );
 
       liteSessionStore.addMessage(sessionId, {
@@ -161,13 +160,12 @@ export const beginStoryFlow = ai.defineFlow({
     try {
       if (!liteSessionStore.getSession(sessionId)) {
         liteSessionStore.createSession(sessionId);
-      }
-
-      const response = await openaiClient.generateWithHistory(
+      }      const response = await openaiClient.generateWithHistory(
         liteSessionStore.getMessages(sessionId),
         beginStoryPrompt(userInput),
         undefined,
-        DEFAULT_MODEL
+        DEFAULT_MODEL,
+        2500 // Higher token limit for story generation
       );
 
       liteSessionStore.addMessage(sessionId, {
@@ -231,12 +229,12 @@ export const continueStoryFlow = ai.defineFlow({
 
     try {
       const currentMilestone = liteSessionStore.getState(sessionId, 'currentMilestone');
-      
-      const response = await openaiClient.generateWithHistory(
+        const response = await openaiClient.generateWithHistory(
         liteSessionStore.getMessages(sessionId),
         continuePrompt(userInput, currentMilestone),
         undefined,
-        DEFAULT_MODEL
+        DEFAULT_MODEL,
+        2500 // Higher token limit for story continuation
       );
 
       liteSessionStore.addMessage(sessionId, {
@@ -296,8 +294,7 @@ async function handleProgress(
 async function endStory(sessionId: string): Promise<string[]> {
   const openaiClient = getOpenAIClient();
   
-  try {
-    const response = await openaiClient.generateWithHistory(
+  try {    const response = await openaiClient.generateWithHistory(
       liteSessionStore.getMessages(sessionId),
       `The characters have achieved their primary objective.
        Write the conclusion of the story. Don't repeat any
@@ -305,7 +302,8 @@ async function endStory(sessionId: string): Promise<string[]> {
        Split the story into 3 parts of similar length. Return an 
        array of strings with the story parts.`,
       undefined,
-      DEFAULT_MODEL
+      DEFAULT_MODEL,
+      1000 // Moderate token limit for conclusion
     );
     
     return parsePartialJson(maybeStripMarkdown(response)) as string[];
@@ -330,15 +328,15 @@ async function genImgBlob(story: string, sessionId: string): Promise<string> {
   const openaiClient = getOpenAIClient();
   const sdClient = getStableDiffusionClient();
   
-  try {
-    // Generate image description using OpenAI
+  try {    // Generate image description using OpenAI
     const storyImgDescr = await openaiClient.generateWithHistory(
       liteSessionStore.getMessages(sessionId),
       `Describe an image that captures the essence of this story: ${story}.
        Do not use any words indicating violence or profanity. Return a string only.
        Do not return JSON.`,
       undefined,
-      DEFAULT_MODEL
+      DEFAULT_MODEL,
+      500 // Small token limit for image description
     );
     
     // Create image prompt and generate with Stable Diffusion

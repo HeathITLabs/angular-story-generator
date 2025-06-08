@@ -74,6 +74,8 @@ The final response should be structured as follows:
 
 Respond as JSON only. Wrap all field values in double quotes. Do not use single quotes.
 
+IMPORTANT: Do not include any reasoning, thinking, or explanation. Return ONLY the JSON object with no additional text, markdown formatting, or thinking tags.
+
 `;
 }
 
@@ -134,9 +136,7 @@ export function continuePrompt(choice: string, currentMilestone: string): string
 
     Based on the part of the story you just wrote, evaluate whether or not the characters
     have achieved their current their current milestone: ${currentMilestone}.
-      The final response should be structured as follows:
-
-    {
+      The final response should be structured as follows:    {
         ${storyPartsJson}
         rating: "GOOD | BAD | NEUTRAL", // GOOD, BAD, or NEUTRAL
         ${choicesJson}
@@ -144,6 +144,8 @@ export function continuePrompt(choice: string, currentMilestone: string): string
     }
 
     Respond as JSON only. Wrap all field values in double quotes. Do not use single quotes.
+
+    IMPORTANT: Do not include any reasoning, thinking, or explanation. Return ONLY the JSON object with no additional text, markdown formatting, or thinking tags.
 
     Do not use any harmful expressions, hate speech, or vulgar
     language.
@@ -202,10 +204,11 @@ export function beginStoryPrompt(description: string): string {
             "milestone_4",
             "milestone_5" // equal to primaryObjective
         ],
-        ${choicesJson}
-    }
+        ${choicesJson}    }
 
     Respond as JSON only. Wrap all field values in double quotes. Do not use single quotes.
+
+    IMPORTANT: Do not include any reasoning, thinking, or explanation. Return ONLY the JSON object with no additional text, markdown formatting, or thinking tags.
 
     Do not use any harmful expressions, hate speech, or vulgar
     language.`;
