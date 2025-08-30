@@ -7,7 +7,7 @@
  */
 import { z } from "zod";
 import { 
-  createLiteGenkit, 
+  flowEngine, // Import the singleton instance directly
   sessionStore as liteSessionStore, 
   getOpenAIClient, 
   getStableDiffusionClient,
@@ -16,11 +16,17 @@ import {
 import { beginStoryPrompt, createImgPrompt, continuePrompt, descriptionPrompt, preamblePrompt } from './prompts';
 import { parsePartialJson } from './lite-genai/utils';
 
-// Create lite-genai instance
-const ai = createLiteGenkit();
+// Model configuration based on provider
+function getDefaultModel(): string {
+  const provider = (process.env['LLM_PROVIDER'] || 'openai').toLowerCase();
+  if (provider === 'ollama') {
+    return process.env['OLLAMA_MODEL'] || 'gemma3:12b';
+  } else {
+    return process.env['OPENAI_MODEL'] || 'gpt-3.5-turbo';
+  }
+}
 
-// OpenAI model configuration
-const DEFAULT_MODEL = 'deepseek-r1-distill-llama-8b';
+const DEFAULT_MODEL = getDefaultModel();
 
 interface MyState {
   primaryObjective?: string;
@@ -34,7 +40,7 @@ const DescriptionOutput = z.object({
   premiseOptions: z.array(z.string())
 });
 
-export const descriptionFlow = ai.defineFlow({
+export const descriptionFlow = flowEngine.defineFlow({
   name: 'descriptionFlow',
   inputSchema: z.object({
     userInput: z.optional(z.string()),
@@ -63,7 +69,9 @@ export const descriptionFlow = ai.defineFlow({
           content: preamblePrompt,
           timestamp: new Date()
         });
-      }      const response = await openaiClient.generateWithHistory(
+      }
+
+      const response = await openaiClient.generateWithHistory(
         liteSessionStore.getMessages(sessionId),
         descriptionPrompt(userInput || ''),
         undefined,
@@ -140,7 +148,7 @@ interface BeginStoryFlowOutput {
   primaryObjective: string;
 }
 
-export const beginStoryFlow = ai.defineFlow({
+export const beginStoryFlow = flowEngine.defineFlow({
   name: 'beginStoryFlow',
   inputSchema: z.object({
     userInput: z.string(),
@@ -160,7 +168,9 @@ export const beginStoryFlow = ai.defineFlow({
     try {
       if (!liteSessionStore.getSession(sessionId)) {
         liteSessionStore.createSession(sessionId);
-      }      const response = await openaiClient.generateWithHistory(
+      }
+
+      const response = await openaiClient.generateWithHistory(
         liteSessionStore.getMessages(sessionId),
         beginStoryPrompt(userInput),
         undefined,
@@ -210,7 +220,7 @@ const ContStoryDetail = z.object({
   })),
 });
 
-export const continueStoryFlow = ai.defineFlow({
+export const continueStoryFlow = flowEngine.defineFlow({
   name: 'continueStoryFlow',
   inputSchema: z.object({
     userInput: z.string(),
@@ -294,7 +304,8 @@ async function handleProgress(
 async function endStory(sessionId: string): Promise<string[]> {
   const openaiClient = getOpenAIClient();
   
-  try {    const response = await openaiClient.generateWithHistory(
+  try {
+    const response = await openaiClient.generateWithHistory(
       liteSessionStore.getMessages(sessionId),
       `The characters have achieved their primary objective.
        Write the conclusion of the story. Don't repeat any
@@ -312,7 +323,7 @@ async function endStory(sessionId: string): Promise<string[]> {
   }
 }
 
-export const genImgFlow = ai.defineFlow({
+export const genImgFlow = flowEngine.defineFlow({
   name: 'genImgFlow',
   inputSchema: z.object({
     story: z.string(),
@@ -325,38 +336,26 @@ export const genImgFlow = ai.defineFlow({
 });
 
 async function genImgBlob(story: string, sessionId: string): Promise<string> {
-   // TEMPORARILY SUSPENDED: Image generation disabled
-  console.log('Image generation temporarily suspended');
-  return ''; // Return empty string instead of generating image
+  const sdClient = getStableDiffusionClient();
   
-  // const openaiClient = getOpenAIClient();
-  // const sdClient = getStableDiffusionClient();
-  
-  // try {    // Generate image description using OpenAI
-  //   const storyImgDescr = await openaiClient.generateWithHistory(
-  //     liteSessionStore.getMessages(sessionId),
-  //     `Describe an image that captures the essence of this story: ${story}.
-  //      Do not use any words indicating violence or profanity. Return a string only.
-  //      Do not return JSON.`,
-  //     undefined,
-  //     DEFAULT_MODEL,
-  //     500 // Small token limit for image description
-  //   );
+  try {
+    // Create image prompt directly from the story text
+    const imgPrompt = createImgPrompt(story);
     
-  //   // Create image prompt and generate with Stable Diffusion
-  //   const imgPrompt = createImgPrompt(storyImgDescr);
-  //   const base64Image = await sdClient.generateImage({
-  //     prompt: imgPrompt,
-  //     width: 512,
-  //     height: 512,
-  //     steps: 20
-  //   });
+    // Generate image with Stable Diffusion
+    const base64Image = await sdClient.generateImage({
+      prompt: imgPrompt,
+      width: 512,
+      height: 512,
+      steps: 20
+    });
     
-  //   return `data:image/png;base64,${base64Image}`;
-  // } catch (e) {
-  //   console.log('Image generation error:', e);
-  //   return '';
-  // }
+    return `data:image/png;base64,${base64Image}`;
+  } catch (e) {
+    console.log('Image generation error:', e);
+    // Return empty string on error instead of crashing
+    return '';
+  }
 }
 
 const markdownRegex = /^\s*(```json)?((.|\n)*?)(```)?\s*$/i;
