@@ -23,16 +23,17 @@ const LOADING_STATUSES = [ResourceStatus.Loading, ResourceStatus.Reloading];
 export class ImageComponent {
   private readonly storyService = inject(StoryService);
   story = input<string>('');
-  isLoading = computed(() => false); // Image generation is suspended
 
-  // imgResource = resource({
-  //   defaultValue: '',
-  //   request: () => this.story(),
-  //   loader: ({request}) => {
-  //     return runFlow({
-  //       url: IMG_FLOW,
-  //       input: { story: request, sessionId: this.storyService.sessionId() }
-  //     });
-  //   }
-  // });
+  imgResource = resource({
+    defaultValue: '',
+    request: () => this.story(),
+    loader: ({request}) => {
+      return runFlow({
+        url: IMG_FLOW,
+        input: { story: request, sessionId: this.storyService.sessionId() }
+      });
+    }
+  });
+
+  isLoading = computed(() => LOADING_STATUSES.includes(this.imgResource.status()));
 }

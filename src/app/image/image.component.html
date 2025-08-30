@@ -7,12 +7,24 @@
  * found in the LICENSE file at https://angular.dev/license
  *
  -->
-<!-- Image generation is currently suspended -->
-<div class="img-placeholder">
-  <mat-icon
-    aria-hidden="false"
-    aria-label="Image disabled icon"
-    fontIcon="image_not_supported"
-  ></mat-icon>
-  <p>Image generation is temporarily disabled</p>
-</div>
+@if (isLoading()) {
+  <div class="loading-img-placeholder">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Generating image...</p>
+  </div>
+} @else if (imgResource.value()) {
+  <img 
+    [src]="imgResource.value()" 
+    alt="Generated story illustration"
+    class="generated-image"
+  />
+} @else {
+  <div class="img-placeholder">
+    <mat-icon
+      aria-hidden="false"
+      aria-label="No image icon"
+      fontIcon="image"
+    ></mat-icon>
+    <p>No image generated yet</p>
+  </div>
+}
