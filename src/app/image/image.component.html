@@ -8,23 +8,23 @@
  *
  -->
 @if (isLoading()) {
-  <div class="loading-img-placeholder">
-    <mat-spinner diameter="40"></mat-spinner>
-    <p>Generating image...</p>
-  </div>
+<div class="loading-img-placeholder">
+  <mat-spinner diameter="40"></mat-spinner>
+  <p>Generating image...</p>
+</div>
 } @else if (imgResource.value()) {
-  <img 
-    [src]="imgResource.value()" 
-    alt="Generated story illustration"
-    class="generated-image"
-  />
+<img
+  [src]="imgResource.value()"
+  alt="Generated story illustration"
+  class="generated-image"
+/>
 } @else {
-  <div class="img-placeholder">
-    <mat-icon
-      aria-hidden="false"
-      aria-label="No image icon"
-      fontIcon="image"
-    ></mat-icon>
-    <p>No image generated yet</p>
-  </div>
+<div class="img-placeholder">
+  <mat-icon
+    aria-hidden="false"
+    aria-label="No image icon"
+    fontIcon="image"
+  ></mat-icon>
+  <p>No image generated yet</p>
+</div>
 }
