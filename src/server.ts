@@ -61,6 +61,7 @@ app.use('/**', (req, res, next) => {
  */
 if (isMainModule(import.meta.url)) {
   const port = process.env['PORT'] || 4000;
+  const host = process.env['HOST'] || '0.0.0.0'; // Listen on all interfaces
   app.listen(port, () => {
     console.log(`Node Express server listening on http://localhost:${port}`);
   });

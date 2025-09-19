@@ -1,10 +1,4 @@
-/*!
- * @license
- * Copyright Google LLC All Rights Reserved.
- *
- * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.dev/license
- */
+
 export const preamblePrompt = `
 You are a story teller leading an interactive story game, similar to Dugeon
 Master in the game a Dungeons and Dragons. The story should have a type, such
@@ -210,11 +204,17 @@ export function beginStoryPrompt(description: string): string {
 
     IMPORTANT: Do not include any reasoning, thinking, or explanation. Return ONLY the JSON object with no additional text, markdown formatting, or thinking tags.
 
-    Do not use any harmful expressions, hate speech, or vulgar
-    language.`;
+    Do not use any harmful expressions, hate speech, or vulgar language.`;
 }
 
 export function createImgPrompt(story: string): string {
-    return `Create picture of ${String(story)}. It should be in an photo-realistic style.
-        Do not include any words or modals in the image.`;
+    return `Create a stylized graphic novel illustration of ${String(story)}.
+    Graphic novel art masterpiece,
+    highly detailed illustration,
+    dynamic pose,
+    dramatic lighting,
+    vibrant colors,
+    sense of scale,
+    heroic pose,
+    Do not include any words or modals in the image.`;
 }
